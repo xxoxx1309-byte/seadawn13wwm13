@@ -2,106 +2,148 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>심력 충전 시간 계산기</title>
+  <title>심력 충전량 계산기</title>
   <style>
     body {
       font-family: 'Noto Sans KR', sans-serif;
-      max-width: 400px;
-      margin: 30px auto;
+      max-width: 420px;
+      margin: 40px auto;
       padding: 20px;
       background: #f7f9fc;
       color: #333;
       border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
     }
-
-    input[type="number"], button {
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 600;
+    }
+    input, button {
       width: 100%;
       padding: 12px;
-      margin: 10px 0;
+      margin-top: 6px;
       border: 1px solid #ccc;
       border-radius: 6px;
-      font-size: 16px;
+      font-size: 15px;
       box-sizing: border-box;
       transition: border-color 0.3s ease;
     }
-
-    input[type="number"]:focus {
+    input:focus {
       border-color: #4a90e2;
       outline: none;
     }
-
     button {
       background: #4a90e2;
-      color: white;
+      color: #fff;
+      font-weight: 700;
       border: none;
       cursor: pointer;
-      font-weight: 600;
+      margin-top: 25px;
     }
-
     button:hover {
       background: #357abd;
     }
-
     .result {
-      margin-top: 20px;
-      padding: 15px;
+      margin-top: 30px;
+      padding: 16px;
       background: #e9f0fb;
-      border-radius: 6px;
+      border-radius: 8px;
       white-space: pre-line;
       font-size: 16px;
-    }
-
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
+      font-weight: 600;
+      min-height: 60px;
     }
   </style>
 </head>
 <body>
-  <h2>심력 충전 시간 계산기</h2>
+  <h2>심력 충전량 계산기</h2>
 
-  <label for="current">현재 심력 입력:</label>
-  <input type="number" id="current" min="0" placeholder="현재 심력" />
+  <label for="startTime">시작 시간 (YYYY-MM-DD HH:mm)</label>
+  <input type="datetime-local" id="startTime" />
 
-  <label for="target">목표 심력 입력:</label>
-  <input type="number" id="target" min="1" placeholder="목표 심력" />
+  <label for="targetTime">계산할 시간 (YYYY-MM-DD HH:mm)</label>
+  <input type="datetime-local" id="targetTime" />
 
-  <button onclick="calculate()">계산하기</button>
+  <label for="startPower">시작 심력 (기본 0)</label>
+  <input type="number" id="startPower" min="0" value="0" />
+
+  <label for="maxPower">최대 심력 (옵션, 비워두면 제한 없음)</label>
+  <input type="number" id="maxPower" min="1" placeholder="최대 심력 입력 안 하면 무제한" />
+
+  <button onclick="calculatePower()">계산하기</button>
 
   <div class="result" id="output"></div>
 
   <script>
-    function calculate() {
-      const current = Number(document.getElementById('current').value);
-      const target = Number(document.getElementById('target').value);
+    function calculatePower() {
+      const startInput = document.getElementById('startTime').value;
+      const targetInput = document.getElementById('targetTime').value;
+      const startPowerRaw = document.getElementById('startPower').value;
+      const maxPowerRaw = document.getElementById('maxPower').value;
+      const output = document.getElementById('output');
 
-      if (isNaN(current) || isNaN(target) || current < 0 || target <= 0) {
-        document.getElementById('output').textContent = '올바른 심력 값을 입력해 주세요.';
+      if (!startInput || !targetInput) {
+        output.textContent = '시작 시간과 계산할 시간을 모두 입력해 주세요.';
         return;
       }
-      if (current >= target) {
-        document.getElementById('output').textContent = '이미 목표 심력 이상입니다!';
+
+      const startTime = new Date(startInput);
+      const targetTime = new Date(targetInput);
+
+      if (targetTime <= startTime) {
+        output.textContent = '계산할 시간은 시작 시간보다 이후여야 합니다.';
         return;
       }
 
-      const left = target - current;
-      const totalMinutes = left * 8;
+      const startPower = startPowerRaw ? Number(startPowerRaw) : 0;
+      if (isNaN(startPower) || startPower < 0) {
+        output.textContent = '시작 심력은 0 이상의 숫자로 입력해 주세요.';
+        return;
+      }
 
-      const now = new Date();
-      const finishDate = new Date(now.getTime() + totalMinutes * 60000);
+      const maxPower = maxPowerRaw ? Number(maxPowerRaw) : null;
+      if (maxPower !== null && (isNaN(maxPower) || maxPower < 1)) {
+        output.textContent = '최대 심력은 1 이상의 숫자여야 하거나 비워두세요.';
+        return;
+      }
 
-      function pad(n) { return n < 10 ? '0' + n : n; }
+      // 경과 시간(분)
+      const diffMs = targetTime - startTime;
+      const diffMinutes = Math.floor(diffMs / 60000);
 
-      const finishString = finishDate.getFullYear() + '/' +
-        pad(finishDate.getMonth() + 1) + '/' +
-        pad(finishDate.getDate()) + ' ' +
-        pad(finishDate.getHours()) + ':' +
-        pad(finishDate.getMinutes());
+      // 충전 횟수 (8분에 1씩)
+      const chargeCount = Math.floor(diffMinutes / 8);
 
-      document.getElementById('output').textContent =
-        `남은 시간: ${Math.floor(totalMinutes / 60)}시간 ${totalMinutes % 60}분\n` +
-        `예상 완성 시간: ${finishString} (현재 시간 기준)`;
+      // 최종 심력 = 시작 + 충전, 최대 심력 제한 적용
+      let finalPower = startPower + chargeCount;
+      if (maxPower !== null && finalPower > maxPower) {
+        finalPower = maxPower;
+      }
+
+      const formattedStart = formatDate(startTime);
+      const formattedTarget = formatDate(targetTime);
+
+      output.textContent =
+        `시작 시간: ${formattedStart}\n` +
+        `계산할 시간: ${formattedTarget}\n` +
+        `경과 시간: ${diffMinutes}분\n` +
+        `충전 횟수(8분당 1씩): ${chargeCount}\n` +
+        `시작 심력: ${startPower}\n` +
+        `계산된 심력량: ${finalPower}`;
+    }
+
+    function formatDate(date) {
+      const pad = n => n < 10 ? '0' + n : n;
+      return date.getFullYear() + '/' +
+        pad(date.getMonth() + 1) + '/' +
+        pad(date.getDate()) + ' ' +
+        pad(date.getHours()) + ':' +
+        pad(date.getMinutes());
     }
   </script>
 </body>
