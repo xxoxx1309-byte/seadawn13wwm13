@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>심력 충전 시간 계산기</title>
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      max-width: 400px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #f7f9fc;
+      color: #333;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    input[type="number"], button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+      box-sizing: border-box;
+      transition: border-color 0.3s ease;
+    }
+
+    input[type="number"]:focus {
+      border-color: #4a90e2;
+      outline: none;
+    }
+
+    button {
+      background: #4a90e2;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background: #357abd;
+    }
+
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      background: #e9f0fb;
+      border-radius: 6px;
+      white-space: pre-line;
+      font-size: 16px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h2>심력 충전 시간 계산기</h2>
+
+  <label for="current">현재 심력 입력:</label>
+  <input type="number" id="current" min="0" placeholder="현재 심력" />
+
+  <label for="target">목표 심력 입력:</label>
+  <input type="number" id="target" min="1" placeholder="목표 심력" />
+
+  <button onclick="calculate()">계산하기</button>
+
+  <div class="result" id="output"></div>
+
+  <script>
+    function calculate() {
+      const current = Number(document.getElementById('current').value);
+      const target = Number(document.getElementById('target').value);
+
+      if (isNaN(current) || isNaN(target) || current < 0 || target <= 0) {
+        document.getElementById('output').textContent = '올바른 심력 값을 입력해 주세요.';
+        return;
+      }
+      if (current >= target) {
+        document.getElementById('output').textContent = '이미 목표 심력 이상입니다!';
+        return;
+      }
+
+      const left = target - current;
+      const totalMinutes = left * 8;
+
+      const now = new Date();
+      const finishDate = new Date(now.getTime() + totalMinutes * 60000);
+
+      function pad(n) { return n < 10 ? '0' + n : n; }
+
+      const finishString = finishDate.getFullYear() + '/' +
+        pad(finishDate.getMonth() + 1) + '/' +
+        pad(finishDate.getDate()) + ' ' +
+        pad(finishDate.getHours()) + ':' +
+        pad(finishDate.getMinutes());
+
+      document.getElementById('output').textContent =
+        `남은 시간: ${Math.floor(totalMinutes / 60)}시간 ${totalMinutes % 60}분\n` +
+        `예상 완성 시간: ${finishString} (현재 시간 기준)`;
+    }
+  </script>
+</body>
+</html>
