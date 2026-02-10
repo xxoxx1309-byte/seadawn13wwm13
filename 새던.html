@@ -2,11 +2,11 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>목표 심력까지 남은 시간 계산기</title>
+  <title>기준 시간 기준 목표 심력까지 남은 시간 계산기</title>
   <style>
     body {
       font-family: 'Noto Sans KR', sans-serif;
-      max-width: 400px;
+      max-width: 420px;
       margin: 40px auto;
       padding: 20px;
       background: #f7f9fc;
@@ -58,42 +58,60 @@
       white-space: pre-line;
       font-size: 16px;
       font-weight: 600;
-      min-height: 60px;
+      min-height: 80px;
     }
   </style>
 </head>
 <body>
-  <h2>현재 시간 기준 목표 심력까지 남은 시간 계산기</h2>
+  <h2>목표 심력까지 남은 시간 계산기 (기준 시간 입력)</h2>
 
-  <label for="currentPower">현재 심력 입력</label>
+  <label for="baseTime">기준 시간 (기준 시점 기준, YYYY-MM-DD HH:mm)</label>
+  <input type="datetime-local" id="baseTime" />
+
+  <label for="currentPower">기준 시점 현재 심력</label>
   <input type="number" id="currentPower" min="0" placeholder="현재 심력" />
 
-  <label for="targetPower">목표 심력 입력</label>
+  <label for="targetPower">목표 심력</label>
   <input type="number" id="targetPower" min="1" placeholder="목표 심력" />
 
-  <button onclick="calculateRemainingTime()">계산하기</button>
+  <button onclick="calculateRemaining()">계산하기</button>
 
   <div class="result" id="output"></div>
 
   <script>
-    function calculateRemainingTime() {
+    function calculateRemaining() {
+      const baseTimeStr = document.getElementById('baseTime').value;
       const currentRaw = document.getElementById('currentPower').value;
       const targetRaw = document.getElementById('targetPower').value;
       const output = document.getElementById('output');
 
+      if (!baseTimeStr) {
+        output.textContent = '기준 시간을 입력해 줘.';
+        return;
+      }
+      if (!currentRaw) {
+        output.textContent = '현재 심력을 입력해 줘.';
+        return;
+      }
+      if (!targetRaw) {
+        output.textContent = '목표 심력을 입력해 줘.';
+        return;
+      }
+
+      const baseTime = new Date(baseTimeStr);
       const currentPower = Number(currentRaw);
       const targetPower = Number(targetRaw);
 
       if (isNaN(currentPower) || currentPower < 0) {
-        output.textContent = '현재 심력을 0 이상의 숫자로 입력해 주세요.';
+        output.textContent = '현재 심력은 0 이상 숫자로 입력해 줘.';
         return;
       }
       if (isNaN(targetPower) || targetPower <= 0) {
-        output.textContent = '목표 심력을 1 이상의 숫자로 입력해 주세요.';
+        output.textContent = '목표 심력은 1 이상의 숫자로 입력해 줘.';
         return;
       }
       if (currentPower >= targetPower) {
-        output.textContent = '이미 목표 심력 이상입니다!';
+        output.textContent = '이미 목표 심력 이상이네!';
         return;
       }
 
@@ -103,25 +121,26 @@
       const hours = Math.floor(totalMinutes / 60);
       const minutes = totalMinutes % 60;
 
-      const now = new Date();
-      const finishDate = new Date(now.getTime() + totalMinutes * 60000);
+      // 예상 완성 시간 = 기준 시간 + 남은 시간
+      const finishTime = new Date(baseTime.getTime() + totalMinutes * 60000);
 
       function pad(n) {
         return n < 10 ? '0' + n : n;
       }
 
-      const finishStr = finishDate.getFullYear() + '/' +
-                        pad(finishDate.getMonth() + 1) + '/' +
-                        pad(finishDate.getDate()) + ' ' +
-                        pad(finishDate.getHours()) + ':' +
-                        pad(finishDate.getMinutes());
+      const finishString = finishTime.getFullYear() + '/' +
+                           pad(finishTime.getMonth() + 1) + '/' +
+                           pad(finishTime.getDate()) + ' ' +
+                           pad(finishTime.getHours()) + ':' +
+                           pad(finishTime.getMinutes());
 
       output.textContent =
+        `기준 시간: ${baseTime.getFullYear()}/${pad(baseTime.getMonth() + 1)}/${pad(baseTime.getDate())} ${pad(baseTime.getHours())}:${pad(baseTime.getMinutes())}\n` +
         `현재 심력: ${currentPower}\n` +
         `목표 심력: ${targetPower}\n` +
         `남은 심력: ${leftPower}\n` +
         `남은 시간: ${hours}시간 ${minutes}분\n` +
-        `예상 완성 시각: ${finishStr} (현재 시간 기준)`;
+        `예상 완성 시점: ${finishString}`;
     }
   </script>
 </body>
