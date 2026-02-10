@@ -116,6 +116,10 @@
       const diffMs = targetTime - startTime;
       const diffMinutes = Math.floor(diffMs / 60000);
 
+      // 시간과 분으로 분리
+      const hours = Math.floor(diffMinutes / 60);
+      const minutes = diffMinutes % 60;
+
       // 충전 횟수 (8분에 1씩)
       const chargeCount = Math.floor(diffMinutes / 8);
 
@@ -131,7 +135,7 @@
       output.textContent =
         `시작 시간: ${formattedStart}\n` +
         `계산할 시간: ${formattedTarget}\n` +
-        `경과 시간: ${diffMinutes}분\n` +
+        `경과 시간: ${hours}시간 ${minutes}분\n` +
         `충전 횟수(8분당 1씩): ${chargeCount}\n` +
         `시작 심력: ${startPower}\n` +
         `계산된 심력량: ${finalPower}`;
@@ -148,5 +152,3 @@
   </script>
 </body>
 </html>
-
-
